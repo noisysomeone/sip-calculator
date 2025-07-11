@@ -10,18 +10,20 @@ const { data } = Astro.props;
   const canvas = document.getElementById('sipChart');
   const { years, values } = JSON.parse(canvas.getAttribute('data-chart'));
 
-  new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: years,
-      datasets: [
-        {
-          label: 'Investment Value (₹)',
-          data: values,
-          fill: true,
-          borderWidth: 2,
-        },
-      ],
-    },
-  });
+  window.renderChart = function(chartData) {
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: chartData.years,
+        datasets: [
+          {
+            label: 'Investment Value (₹)',
+            data: chartData.values,
+            fill: true,
+            borderWidth: 2,
+          },
+        ],
+      },
+    });
+  };
 </script>
