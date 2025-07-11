@@ -1,6 +1,12 @@
-import { defineConfig } from 'astro/config';
-import preact from '@astrojs/preact';
+import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  integrations: [preact()],
+  output: "static",
+  vite: {
+    build: {
+      rollupOptions: {
+        external: ["chart.js"],
+      },
+    },
+  },
 });

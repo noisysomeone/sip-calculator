@@ -1,14 +1,153 @@
 ---
-import SIPCalculator from '../components/SIPCalculator.jsx';
+import { Chart } from 'chart.js/auto';
+
+// Client-side script for SIP calculation and chart rendering
+const clientScript = `
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('sip-form');
+    const resultDiv = document.getElementById('result');
+    const chartCanvas = document.getElementById('investment-chart').getContext('2d');
+    let chart;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Get input values
+      const monthlyInvestment = parseFloat(document.getElementById('monthly-investment').value);
+      const years = parseFloat(document.getElementById('years').value);
+      const annualRate = parseFloat(document.getElementById('annual-rate').value) / 100;
+
+      // Validate inputs
+      if (isNaN(monthlyInvestment) || isNaN(years) || isNaN(annualRate) || monthlyInvestment <= 0 || years <= 0 || annualRate <= 0) {
+        resultDiv.innerHTML = '<p class="text-red-500">Please enter valid positive values for all fields.</p>';
+        return;
+      }
+
+      // SIP calculation
+      const months = years * 12;
+      const monthlyRate = annualRate / 12;
+      const futureValue = monthlyInvestment * (((1 + monthlyRate) ** months - 1) / monthlyRate) * (1 + monthlyRate);
+      const investedAmount = monthlyInvestment * months;
+      const profit = futureValue - investedAmount;
+
+      // Display results
+      resultDiv.innerHTML = \`
+        <p><strong>Invested Amount:</strong> ₹\${investedAmount.toFixed(2)}</p>
+        <p><strong>Estimated Returns:</strong> ₹\${profit.toFixed(2)}</p>
+        <p><strong>Total Value:</strong> ₹\${futureValue.toFixed(2)}</p>
+      \`;
+
+      // Prepare data for chart
+      const labels = Array.from({ length: months + 1 }, (_, i) => i / 12);
+      const data = labels.map(month => {
+        return monthlyInvestment * (((1 + monthlyRate) ** month - 1) / monthlyRate) * (1 + monthlyRate);
+      });
+
+      // Destroy existing chart if it exists
+      if (chart) chart.destroy();
+
+      // Create new chart
+      chart = new Chart(chartCanvas, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Investment Value (₹)',
+            data: data,
+            borderColor: '#4F46E5',
+            fill: false,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: { display: true, text: 'Years' }
+            },
+            y: {
+              title: { display: true, text: 'Value (₹)' }
+            }
+          }
+        }
+      });
+    });
+  });
+`;
 ---
 
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>SIP Calculator</title>
-  </head>
-  <body>
-    <h1>SIP Calculator (India)</h1>
-    <SIPCalculator client:load />
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIP Calculator for India</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto p-4 sm:p-8">
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">SIP Calculator</h1>
+      <p class="text-gray-600 mt-2">Plan your Systematic Investment Plan (SIP) and visualize your wealth growth</p>
+    </header>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Form and Results -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Enter Your SIP Details</h2>
+        <form id="sip-form" class="space-y-4">
+          <div>
+            <label for="monthly-investment" class="block text-sm font-medium text-gray-700">Monthly Investment (₹)</label>
+            <input type="number" id="monthly-investment" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 5000" required>
+          </div>
+          <div>
+            <label for="years" class="block text-sm font-medium text-gray-700">Investment Period (Years)</label>
+            <input type="number" id="years" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 10" required>
+          </div>
+          <div>
+            <label for="annual-rate" class="block text-sm font-medium text-gray-700">Expected Annual Return (%)</label>
+            <input type="number" id="annual-rate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 12" step="0.1" required>
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Calculate</button>
+        </form>
+        <div id="result" class="mt-6 text-gray-800"></div>
+      </div>
+
+      <!-- Chart -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Investment Growth Over Time</h2>
+        <canvas id="investment-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Information Sections -->
+    <section class="mt-12">
+      <h2 class="text-2xl font-semibold text-indigo-600 mb-4">What is a Systematic Investment Plan (SIP)?</h2>
+      <p class="text-gray-600 mb-4">
+        A Systematic Investment Plan (SIP) allows you to invest a fixed amount regularly in a mutual fund scheme, typically monthly. It’s a disciplined approach to wealth creation, enabling you to benefit from rupee cost averaging and the power of compounding over time. SIPs are popular in India for their flexibility and potential to generate significant returns, especially in equity mutual funds.
+      </p>
+      <p class="text-gray-600">
+        This calculator helps you estimate the future value of your SIP investments based on your monthly investment, investment period, and expected annual return rate. Note that actual returns may vary due to market fluctuations, and this tool provides illustrative results only.[](https://www.gstfi.pl/kalkulatory/kalkulator-regularnego-inwestowania)
+      </p>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-2xl font-semibold text-indigo-600 mb-4">How to Use the Calculator</h2>
+      <p class="text-gray-600">
+        1. Enter your monthly investment amount in rupees.<br>
+        2. Specify the investment period in years.<br>
+        3. Provide the expected annual return rate (e.g., 12% for equity funds).<br>
+        4. Click "Calculate" to see the estimated future value, invested amount, and returns.<br>
+        5. The chart will display how your investment grows over time.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    {clientScript}
+  </script>
+</body>
 </html>
