@@ -1,0 +1,41 @@
+---
+import SIPForm from '../components/SIPForm.astro';
+import SIPChart from '../components/SIPChart.astro';
+let result = null;
+function calculateSIP({ monthlyInvestment, years, interestRate }) {
+  const months = years * 12;
+  const monthlyRate = interestRate / 12 / 100;
+  let total = 0, chartYears = [], chartValues = [];
+  for (let i = 1; i <= months; i++) {
+    total = total * (1 + monthlyRate) + monthlyInvestment;
+    if (i % 12 === 0) {
+      chartYears.push(`Year ${i/12}`);
+      chartValues.push(Math.round(total));
+    }
+  }
+  return {
+    invested: monthlyInvestment * months,
+    value: Math.round(total),
+    gain: Math.round(total - monthlyInvestment * months),
+    chart: { years: chartYears, values: chartValues }
+  };
+}
+---
+<html lang="en">
+  <head><meta charset="UTF-8" /><title>SIP Calculator</title></head>
+  <body>
+    <h1>SIP Calculator (India)</h1>
+    <SIPForm client:load onCalculate={res => result = calculateSIP(res)} />
+    {result && (
+      <>
+        <h2>Results</h2>
+        <ul>
+          <li>Total Invested: ₹{result.invested}</li>
+          <li>Final Value: ₹{result.value}</li>
+          <li>Estimated Gain: ₹{result.gain}</li>
+        </ul>
+        <SIPChart data={result.chart} />
+      </>
+    )}
+  </body>
+</html>

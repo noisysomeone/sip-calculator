@@ -1,0 +1,19 @@
+---
+---
+
+<script type="module" client:load>
+  import { useState } from 'preact/hooks';
+  export default function SIPForm({ onCalculate }) {
+    const [form, setForm] = useState({ monthlyInvestment: 10000, years: 10, interestRate: 12 });
+    const handleChange = e => setForm({ ...form, [e.target.name]: Number(e.target.value) });
+    const handleSubmit = e => { e.preventDefault(); onCalculate(form); };
+    return (
+      <form onSubmit={handleSubmit}>
+        <label>Monthly Investment (₹)<input name="monthlyInvestment" type="number" value={form.monthlyInvestment} onChange={handleChange} /></label>
+        <label>Investment Period (Years)<input name="years" type="number" value={form.years} onChange={handleChange} /></label>
+        <label>Expected Return (% p.a)<input name="interestRate" type="number" value={form.interestRate} onChange={handleChange} /></label>
+        <button type="submit">Calculate</button>
+      </form>
+    );
+  }
+</script>
