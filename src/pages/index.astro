@@ -1,18 +1,24 @@
 ---
-import SIPForm from '../components/SIPForm.astro';
+import SIPForm from '../components/SIPForm.jsx';
 import SIPChart from '../components/SIPChart.astro';
+
 let result = null;
+
 function calculateSIP({ monthlyInvestment, years, interestRate }) {
   const months = years * 12;
   const monthlyRate = interestRate / 12 / 100;
-  let total = 0, chartYears = [], chartValues = [];
+  let total = 0;
+  let chartYears = [];
+  let chartValues = [];
+
   for (let i = 1; i <= months; i++) {
     total = total * (1 + monthlyRate) + monthlyInvestment;
     if (i % 12 === 0) {
-      chartYears.push(`Year ${i/12}`);
+      chartYears.push(`Year ${i / 12}`);
       chartValues.push(Math.round(total));
     }
   }
+
   return {
     invested: monthlyInvestment * months,
     value: Math.round(total),
@@ -21,21 +27,24 @@ function calculateSIP({ monthlyInvestment, years, interestRate }) {
   };
 }
 ---
+
 <html lang="en">
-  <head><meta charset="UTF-8" /><title>SIP Calculator</title></head>
+  <head>
+    <title>SIP Calculator</title>
+    <meta charset="UTF-8" />
+  </head>
   <body>
-    <h1>SIP Calculator (India)</h1>
-    <SIPForm client:load onCalculate={res => result = calculateSIP(res)} />
-    {result && (
-      <>
-        <h2>Results</h2>
-        <ul>
-          <li>Total Invested: ₹{result.invested}</li>
-          <li>Final Value: ₹{result.value}</li>
-          <li>Estimated Gain: ₹{result.gain}</li>
-        </ul>
-        <SIPChart data={result.chart} />
-      </>
-    )}
+    <h1>SIP Calculator</h1>
+    <SIPForm client:load onCalculate={(form) => {
+      const res = calculateSIP(form);
+      document.getElementById('result').innerHTML = `
+        <p>Total Invested: ₹${res.invested}</p>
+        <p>Final Value: ₹${res.value}</p>
+        <p>Estimated Gain: ₹${res.gain}</p>
+      `;
+      window.renderChart(res.chart);
+    }} />
+    <div id="result"></div>
+    <SIPChart data={{ years: [], values: [] }} />
   </body>
 </html>

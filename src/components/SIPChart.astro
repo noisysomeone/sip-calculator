@@ -1,16 +1,27 @@
 ---
 const { data } = Astro.props;
 ---
-<canvas id="sipChart" data-sip={JSON.stringify(data)} width="400" height="200"></canvas>
+
+<canvas id="sipChart" width="400" height="200" data-chart={JSON.stringify(data)}></canvas>
+
 <script type="module" client:load>
   import Chart from 'chart.js/auto';
-  const ctx = document.getElementById('sipChart');
-  const chartData = JSON.parse(ctx.getAttribute('data-sip'));
-  new Chart(ctx, {
+
+  const canvas = document.getElementById('sipChart');
+  const { years, values } = JSON.parse(canvas.getAttribute('data-chart'));
+
+  new Chart(canvas, {
     type: 'line',
     data: {
-      labels: chartData.years,
-      datasets: [{ label: 'Investment Value (₹)', data: chartData.values, fill: true, borderWidth: 2 }]
-    }
+      labels: years,
+      datasets: [
+        {
+          label: 'Investment Value (₹)',
+          data: values,
+          fill: true,
+          borderWidth: 2,
+        },
+      ],
+    },
   });
 </script>
